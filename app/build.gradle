@@ -8,7 +8,7 @@ android {
     compileSdk 34
 
     defaultConfig {
-        applicationId 'de.app.kfzscanner'
+        applicationId "de.app.kfzscanner"
         minSdk 34
         targetSdk 34
         versionCode 1
@@ -30,7 +30,6 @@ android {
 }
 
 dependencies {
-    implementation(libs.gson)
     implementation libs.appcompat
     implementation libs.material
     testImplementation libs.junit

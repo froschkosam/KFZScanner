@@ -1,9 +1,8 @@
 package de.app.kfzscanner;
 
+
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 
@@ -17,13 +16,9 @@ import android.widget.TextView;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,7 +29,6 @@ public class MainActivity extends AppCompatActivity {
 
     private EditText etLicensePlate;
     private Button btnSearch;
-    private TextView tvErrorMessage;
     private TableLayout tableLayout;
     private TextView tvLicensePlate;
     private TextView tvManufacture;
@@ -50,11 +44,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        loadDatabaseFromSharedPrefs();
 
         etLicensePlate = findViewById(R.id.etLicensePlate);
         btnSearch = findViewById(R.id.btnSearch);
-        tvErrorMessage = findViewById(R.id.tvErrorMessage);
         tableLayout = findViewById(R.id.tableLayout);
         tvLicensePlate = findViewById(R.id.tvLicensePlate);
         tvManufacture = findViewById(R.id.tvManufacture);
@@ -86,16 +78,10 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-        saveDatabaseToSharedPrefs();
-    }
-
     private void openFilePicker() {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("text/comma-separated-values");
+        intent.setType("text/comma-separated-values"); // oder "*/*" für alle Dateitypen
         startActivityForResult(intent, PICK_CSV_FILE);
     }
 
@@ -153,11 +139,23 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+//private void searchDatabase(String licensePlate) {
+//    String manufacture = "Toyota";
+//    String person = "John Doe";
+//    String unit = "1234";
+//    boolean isElectric = true;
+//    tableLayout.setVisibility(View.VISIBLE);
+//    tvLicensePlate.setText(licensePlate);
+//    tvManufacture.setText(manufacture);
+//    tvPerson.setText(person);
+//    tvUnit.setText(unit);
+//    tvElectric.setText(isElectric ? "Ja" : "Nein");
+//}
+
     private void searchDatabase(String licensePlate) {
         Car car = findCarByLicensePlate(database, licensePlate);
         if (car != null) {
             tableLayout.setVisibility(View.VISIBLE);
-            tvErrorMessage.setVisibility(View.GONE);
             tvLicensePlate.setText(car.licensePlate);
             tvManufacture.setText(car.manufacture);
             tvPerson.setText(car.person);
@@ -165,7 +163,6 @@ public class MainActivity extends AppCompatActivity {
             tvElectric.setText(car.isElectric ? "Ja" : "Nein");
         } else {
             tableLayout.setVisibility(View.GONE);
-            tvErrorMessage.setVisibility(View.VISIBLE);
         }
     }
 
@@ -174,27 +171,6 @@ public class MainActivity extends AppCompatActivity {
                 .filter(car -> car.getLicensePlate().replaceAll("\\s+", "").equalsIgnoreCase(licensePlate.replaceAll("\\s+", "")))
                 .findFirst()
                 .orElse(null);
-    }
-
-    private void saveDatabaseToSharedPrefs() {
-        SharedPreferences sharedPrefs = getSharedPreferences("app_prefs", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPrefs.edit();
-        Gson gson = new Gson();
-        String json = gson.toJson(database);
-        editor.putString("database", json);
-        editor.apply();
-    }
-
-    private void loadDatabaseFromSharedPrefs() {
-        SharedPreferences sharedPrefs = getSharedPreferences("app_prefs", Context.MODE_PRIVATE);
-        Gson gson = new Gson();
-        String json = sharedPrefs.getString("database", null);
-        Type type = new TypeToken<ArrayList<Car>>() {}.getType();
-        if (json != null) {
-            database = gson.fromJson(json, type);
-        } else {
-            database = new ArrayList<>();
-        }
     }
 
 }
